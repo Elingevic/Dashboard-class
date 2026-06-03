@@ -9,7 +9,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:setup": "node scripts/setup-database.mjs",
+    "db:setup": "node scripts/import-bi-csv.mjs",
+    "db:import": "node scripts/import-bi-csv.mjs",
+    "db:legacy": "node scripts/setup-database.mjs",
     "vercel:env": "node scripts/push-vercel-env.mjs",
     "clean": "node -e \"const fs=require('fs');['.next','node_modules'].forEach(p=>{try{fs.rmSync(p,{recursive:true,force:true})}catch(e){}})\""
   },
@@ -22,7 +24,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "recharts": "^3.8.1",
-    "decimal.js-light": "^2.5.1"
+    "decimal.js-light": "^2.5.1",
+    "csv-parse": "^5.6.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

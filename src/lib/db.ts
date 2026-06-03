@@ -3,15 +3,17 @@ import { getPgPoolConfig } from '@/lib/pg-config'
 
 export const pool = new Pool(getPgPoolConfig())
 
+/** Esquema en estrella: hecho central + dimensiones. */
 export const JOIN_BASE = `
-  FROM despliegue d
-  JOIN proyecto p ON d.id_proyecto = p.id_proyecto
-  JOIN servidor s ON d.id_servidor = s.id_servidor
-  JOIN ambiente a ON s.id_ambiente = a.id_ambiente
-  LEFT JOIN usuario u ON d.id_usuario = u.id_usuario
+  FROM fact_despliegue f
+  JOIN dim_proyecto p ON f.id_proyecto = p.id_proyecto
+  JOIN dim_usuario u ON f.id_usuario = u.id_usuario
+  JOIN dim_servidor s ON f.id_servidor = s.id_servidor
+  JOIN dim_ambiente a ON f.id_ambiente = a.id_ambiente
+  LEFT JOIN dim_tiempo t ON f.id_tiempo = t.id_tiempo
 `
 
-export const FECHA_DESPLIEGUE = `COALESCE(d.fecha_fin, d.fecha_inicio, d.fecha_solicitud)`
+export const FECHA_DESPLIEGUE = `COALESCE(f.fecha_fin, f.fecha_inicio, f.fecha_solicitud)`
 
 export type FiltrosQuery = {
   trimestreDesde: string
@@ -34,20 +36,22 @@ export function buildWhere(
   let i = startIdx + 2
 
   if (filtros.estado) {
-    conditions.push(`LOWER(REPLACE(d.estado, ' ', '_')) = LOWER(REPLACE($${i++}::text, ' ', '_'))`)
+    conditions.push(
+      `LOWER(REPLACE(f.estado_despliegue, ' ', '_')) = LOWER(REPLACE($${i++}::text, ' ', '_'))`
+    )
     params.push(filtros.estado)
   }
   if (filtros.ambiente) {
-    conditions.push(`LOWER(a.nombre) = LOWER($${i++})`)
+    conditions.push(`LOWER(a.ambiente) = LOWER($${i++})`)
     params.push(filtros.ambiente)
   }
   if (filtros.proyecto) {
-    conditions.push(`LOWER(p.nombre) = LOWER($${i++})`)
+    conditions.push(`LOWER(p.proyecto) = LOWER($${i++})`)
     params.push(filtros.proyecto)
   }
   if (filtros.busqueda) {
     conditions.push(
-      `(LOWER(p.nombre) LIKE LOWER($${i}) OR LOWER(REPLACE(d.estado, ' ', '_')) LIKE LOWER(REPLACE($${i}::text, ' ', '_')) OR LOWER(a.nombre) LIKE LOWER($${i}) OR LOWER(COALESCE(u.nombre_completo, '')) LIKE LOWER($${i}))`
+      `(LOWER(p.proyecto) LIKE LOWER($${i}) OR LOWER(REPLACE(f.estado_despliegue, ' ', '_')) LIKE LOWER(REPLACE($${i}::text, ' ', '_')) OR LOWER(a.ambiente) LIKE LOWER($${i}) OR LOWER(COALESCE(u.responsable, '')) LIKE LOWER($${i}))`
     )
     params.push(`%${filtros.busqueda}%`)
     i++

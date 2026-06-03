@@ -47,25 +47,23 @@ export async function GET(request: NextRequest) {
     }>(
       `
       SELECT
-        COUNT(DISTINCT d.id_despliegue) AS total,
-        COUNT(DISTINCT d.id_despliegue) FILTER (WHERE ${SQL_ESTADO_TERMINAL}) AS terminales,
-        COUNT(DISTINCT d.id_despliegue) FILTER (WHERE ${SQL_ESTADO_EXITO}) AS exitos,
-        COUNT(DISTINCT d.id_despliegue) FILTER (WHERE ${SQL_ESTADO_FALLO}) AS fallos,
-        COUNT(DISTINCT r.id_despliegue) AS con_rollback,
-        COUNT(DISTINCT e.id_despliegue) AS con_evidencia,
-        COUNT(DISTINCT d.id_despliegue) FILTER (
-          WHERE d.commit_hash IS NOT NULL AND TRIM(d.commit_hash) <> ''
+        COUNT(DISTINCT f.id_despliegue) AS total,
+        COUNT(DISTINCT f.id_despliegue) FILTER (WHERE ${SQL_ESTADO_TERMINAL}) AS terminales,
+        COUNT(DISTINCT f.id_despliegue) FILTER (WHERE ${SQL_ESTADO_EXITO}) AS exitos,
+        COUNT(DISTINCT f.id_despliegue) FILTER (WHERE ${SQL_ESTADO_FALLO}) AS fallos,
+        COUNT(DISTINCT f.id_despliegue) FILTER (WHERE f.rollback_flag = 1) AS con_rollback,
+        COUNT(DISTINCT f.id_despliegue) FILTER (WHERE f.evidencia_completa_flag = 1) AS con_evidencia,
+        COUNT(DISTINCT f.id_despliegue) FILTER (
+          WHERE f.commit_hash IS NOT NULL AND TRIM(f.commit_hash) <> ''
         ) AS con_commit,
-        COUNT(DISTINCT ap.id_despliegue) AS con_aprobacion,
-        COUNT(DISTINCT d.id_despliegue) FILTER (
-          WHERE d.fecha_fin IS NOT NULL AND ${SQL_ESTADO_EXITO}
+        COUNT(DISTINCT f.id_despliegue) FILTER (
+          WHERE LOWER(COALESCE(f.ultima_decision_aprobacion, '')) = 'aprobada'
+        ) AS con_aprobacion,
+        COUNT(DISTINCT f.id_despliegue) FILTER (
+          WHERE f.migraciones_total > 0 AND f.migraciones_fallidas = 0
         ) AS migracion_ok,
-        COUNT(DISTINCT d.id_despliegue) FILTER (WHERE d.fecha_fin IS NOT NULL) AS migracion_total
+        COUNT(DISTINCT f.id_despliegue) FILTER (WHERE f.migraciones_total > 0) AS migracion_total
       ${JOIN_BASE}
-      LEFT JOIN rollback r ON r.id_despliegue = d.id_despliegue
-      LEFT JOIN evidencia e ON e.id_despliegue = d.id_despliegue
-      LEFT JOIN aprobacion ap ON ap.id_despliegue = d.id_despliegue
-        AND LOWER(ap.decision) = 'aprobado'
       ${whereClause}
     `,
       whereParams
@@ -86,15 +84,15 @@ export async function GET(request: NextRequest) {
     const [estadosResult, porAmbienteResult, porProyectoResult, tendenciaResult, porUsuarioResult, rollbacksResult, desplieguesResult, gobernanzaResult] =
       await Promise.all([
         client.query<{ estado: string; total: string }>(
-          `SELECT d.estado, COUNT(*) AS total ${JOIN_BASE} ${whereClause} GROUP BY d.estado ORDER BY total DESC`,
+          `SELECT f.estado_despliegue AS estado, COUNT(*) AS total ${JOIN_BASE} ${whereClause} GROUP BY f.estado_despliegue ORDER BY total DESC`,
           whereParams
         ),
         client.query<{ ambiente: string; total: string }>(
-          `SELECT a.nombre AS ambiente, COUNT(d.id_despliegue) AS total ${JOIN_BASE} ${whereClause} GROUP BY a.nombre ORDER BY total DESC`,
+          `SELECT a.ambiente, COUNT(f.id_despliegue) AS total ${JOIN_BASE} ${whereClause} GROUP BY a.ambiente ORDER BY total DESC`,
           whereParams
         ),
         client.query<{ proyecto: string; total: string }>(
-          `SELECT p.nombre AS proyecto, COUNT(d.id_despliegue) AS total ${JOIN_BASE} ${whereClause} GROUP BY p.nombre ORDER BY total DESC`,
+          `SELECT p.proyecto, COUNT(f.id_despliegue) AS total ${JOIN_BASE} ${whereClause} GROUP BY p.proyecto ORDER BY total DESC`,
           whereParams
         ),
         client.query<{ periodo: Date; total: string; exitosos: string; fallidos: string }>(
@@ -113,10 +111,10 @@ export async function GET(request: NextRequest) {
         ),
         client.query<{ usuario: string; total: string }>(
           `
-          SELECT COALESCE(u.nombre_completo, 'Sin asignar') AS usuario, COUNT(*) AS total
+          SELECT COALESCE(u.responsable, 'Sin asignar') AS usuario, COUNT(*) AS total
           ${JOIN_BASE}
           ${whereClause}
-          GROUP BY u.nombre_completo
+          GROUP BY u.responsable
           ORDER BY total DESC
           LIMIT 8
         `,
@@ -124,13 +122,13 @@ export async function GET(request: NextRequest) {
         ),
         client.query<{ proyecto: string; rollbacks: string; despliegues: string }>(
           `
-          SELECT p.nombre AS proyecto, COUNT(r.nro_rollback) AS rollbacks,
-                 COUNT(DISTINCT d.id_despliegue) AS despliegues
+          SELECT p.proyecto,
+                 SUM(f.rollback_flag)::int AS rollbacks,
+                 COUNT(DISTINCT f.id_despliegue) AS despliegues
           ${JOIN_BASE}
-          LEFT JOIN rollback r ON r.id_despliegue = d.id_despliegue
           ${whereClause}
-          GROUP BY p.nombre
-          HAVING COUNT(r.nro_rollback) > 0
+          GROUP BY p.proyecto
+          HAVING SUM(f.rollback_flag) > 0
           ORDER BY rollbacks DESC
           LIMIT 10
         `,
@@ -154,23 +152,20 @@ export async function GET(request: NextRequest) {
         }>(
           `
           SELECT
-            d.id_despliegue AS id,
-            d.estado,
-            p.nombre AS proyecto,
-            a.nombre AS ambiente,
-            u.nombre_completo AS usuario,
-            d.commit_hash,
-            d.fecha_solicitud,
-            d.fecha_fin,
-            d.resultado_final,
-            EXISTS (SELECT 1 FROM evidencia ev WHERE ev.id_despliegue = d.id_despliegue) AS tiene_evidencia,
-            EXISTS (
-              SELECT 1 FROM aprobacion ap
-              WHERE ap.id_despliegue = d.id_despliegue AND LOWER(ap.decision) = 'aprobado'
-            ) AS tiene_aprobacion,
-            (d.commit_hash IS NOT NULL AND TRIM(d.commit_hash) <> '') AS tiene_validacion_commit,
-            (d.fecha_fin IS NOT NULL) AS migracion_concluida,
-            (SELECT COUNT(*)::int FROM rollback rb WHERE rb.id_despliegue = d.id_despliegue) AS rollbacks
+            f.id_despliegue AS id,
+            f.estado_despliegue AS estado,
+            p.proyecto,
+            a.ambiente,
+            u.responsable AS usuario,
+            f.commit_hash,
+            f.fecha_solicitud,
+            f.fecha_fin,
+            f.resultado_final,
+            (f.evidencia_completa_flag = 1) AS tiene_evidencia,
+            (LOWER(COALESCE(f.ultima_decision_aprobacion, '')) = 'aprobada') AS tiene_aprobacion,
+            (f.commit_hash IS NOT NULL AND TRIM(f.commit_hash) <> '') AS tiene_validacion_commit,
+            (f.migraciones_total > 0) AS migracion_concluida,
+            f.rollback_flag::int AS rollbacks
           ${JOIN_BASE}
           ${whereClause}
           ORDER BY ${FECHA_DESPLIEGUE} DESC
@@ -184,12 +179,9 @@ export async function GET(request: NextRequest) {
           `
           SELECT
             COUNT(DISTINCT a.id_ambiente) FILTER (WHERE a.requiere_aprobacion = true) AS ambientes_criticos,
-            COUNT(DISTINCT d.id_despliegue) FILTER (
+            COUNT(DISTINCT f.id_despliegue) FILTER (
               WHERE a.requiere_aprobacion = true
-                AND NOT EXISTS (
-                  SELECT 1 FROM aprobacion ap
-                  WHERE ap.id_despliegue = d.id_despliegue AND LOWER(ap.decision) = 'aprobado'
-                )
+                AND LOWER(COALESCE(f.ultima_decision_aprobacion, '')) <> 'aprobada'
             ) AS sin_aprobacion_critico
           ${JOIN_BASE}
           ${whereClause}
@@ -200,10 +192,10 @@ export async function GET(request: NextRequest) {
 
     const [estadosOpt, ambientesOpt, proyectosOpt] = await Promise.all([
       client.query<{ valor: string }>(
-        `SELECT DISTINCT estado AS valor FROM despliegue ORDER BY valor`
+        `SELECT DISTINCT estado_despliegue AS valor FROM fact_despliegue ORDER BY valor`
       ),
-      client.query<{ valor: string }>(`SELECT DISTINCT nombre AS valor FROM ambiente ORDER BY valor`),
-      client.query<{ valor: string }>(`SELECT DISTINCT nombre AS valor FROM proyecto ORDER BY valor`),
+      client.query<{ valor: string }>(`SELECT DISTINCT ambiente AS valor FROM dim_ambiente ORDER BY valor`),
+      client.query<{ valor: string }>(`SELECT DISTINCT proyecto AS valor FROM dim_proyecto ORDER BY valor`),
     ])
 
     const gov = gobernanzaResult.rows[0]

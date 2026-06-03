@@ -23,24 +23,19 @@ corepack enable
 pnpm install
 ```
 
-### 1. Base de datos local (PostgreSQL)
+### 1. Base de datos (esquema en estrella + CSV BI)
 
-No hace falta un servidor remoto. En tu PC:
-
-1. Instala [PostgreSQL](https://www.postgresql.org/download/) y crea la base `postgres` (o la que uses).
-2. Copia el ejemplo de entorno:
+1. Copia el ejemplo de entorno: `copy .env.example .env.local` y configura `DATABASE_URL` (local o Supabase).
+2. Importa el modelo dimensional y la sábana **BI_DESPLIEGUES_Q1_2024** (84 filas):
    ```bash
-   copy .env.example .env.local
+   pnpm install
+   pnpm db:import
    ```
-3. Crea tablas + datos de prueba (15 despliegues, trimestre T2 2026):
-   ```bash
-   pnpm db:setup
-   ```
-   Equivalente manual: `psql -U postgres -d postgres -f scripts/database-model.sql`
+3. Modelo anterior (T2 2026): `pnpm db:legacy`
 
-- **Estructura de la BD (README):** [docs/README-BASE-DE-DATOS.md](docs/README-BASE-DE-DATOS.md)  
-- **Diagrama ER:** [docs/MODELO-DATOS.md](docs/MODELO-DATOS.md)  
-- **Script SQL:** `scripts/database-model.sql`
+- **Esquema en estrella:** [docs/MODELO-ESTRELLA.md](docs/MODELO-ESTRELLA.md)  
+- **Django / DRF:** `backend/despliegues/models.py`, `serializers.py`  
+- **CSV:** `data/BI_DESPLIEGUES_Q1_2024.csv`
 
 ### 2. Dashboard
 

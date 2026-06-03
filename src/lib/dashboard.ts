@@ -15,7 +15,7 @@ export interface FiltrosDashboard {
 }
 
 export const FILTROS_VACIOS: FiltrosDashboard = {
-  trimestre: '2026-Q2',
+  trimestre: '2024-Q1',
   estado: '',
   ambiente: '',
   proyecto: '',
@@ -146,7 +146,9 @@ export function etiquetaEstado(estado: string): string {
     error: 'Error',
     pendiente: 'Pendiente',
     en_progreso: 'En progreso',
+    pendiente_aprobacion: 'Pendiente de aprobación',
     cancelado: 'Cancelado',
+    revertido: 'Revertido',
   }
   const key = estado.toLowerCase().replace(/\s+/g, '_')
   return map[key] ?? estado

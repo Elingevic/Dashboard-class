@@ -5,8 +5,13 @@ export function normalizarEstado(estado: string): string {
 
 export const ESTADOS_EXITO = ['exitoso', 'completado']
 export const ESTADOS_FALLO = ['fallido', 'error']
-export const ESTADOS_PENDIENTE = ['pendiente', 'en_progreso']
-export const ESTADOS_TERMINALES = [...ESTADOS_EXITO, ...ESTADOS_FALLO, 'cancelado']
+export const ESTADOS_PENDIENTE = ['pendiente', 'en_progreso', 'pendiente_aprobacion']
+export const ESTADOS_TERMINALES = [
+  ...ESTADOS_EXITO,
+  ...ESTADOS_FALLO,
+  'cancelado',
+  'revertido',
+]
 
 export function esExito(estado: string): boolean {
   return ESTADOS_EXITO.includes(normalizarEstado(estado))
@@ -20,7 +25,9 @@ export function esTerminal(estado: string): boolean {
   return ESTADOS_TERMINALES.includes(normalizarEstado(estado))
 }
 
-/** Condiciones SQL reutilizables (sobre columna d.estado). */
-export const SQL_ESTADO_EXITO = `(LOWER(REPLACE(d.estado, ' ', '_')) IN ('exitoso', 'completado'))`
-export const SQL_ESTADO_FALLO = `(LOWER(REPLACE(d.estado, ' ', '_')) IN ('fallido', 'error'))`
-export const SQL_ESTADO_TERMINAL = `(LOWER(REPLACE(d.estado, ' ', '_')) IN ('exitoso', 'completado', 'fallido', 'error', 'cancelado'))`
+const COL = `LOWER(REPLACE(f.estado_despliegue, ' ', '_'))`
+
+/** Condiciones SQL reutilizables (tabla de hechos fact_despliegue). */
+export const SQL_ESTADO_EXITO = `(${COL} IN ('exitoso', 'completado') OR f.despliegue_exitoso_flag = 1)`
+export const SQL_ESTADO_FALLO = `(${COL} IN ('fallido', 'error') OR f.despliegue_fallido_flag = 1)`
+export const SQL_ESTADO_TERMINAL = `(${COL} IN ('exitoso', 'completado', 'fallido', 'error', 'cancelado', 'revertido'))`
