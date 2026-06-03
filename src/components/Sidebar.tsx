@@ -4,7 +4,6 @@ import { useEffect, useState, type ReactNode } from 'react'
 import {
   LayoutGrid,
   BarChart3,
-  Rocket,
   Server,
   Shield,
   Scale,
@@ -130,17 +129,6 @@ export default function Sidebar({
             )
           })}
         </nav>
-
-        <div className="sidebar-hint mt-4 hidden rounded-xl p-4 lg:block">
-          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
-            <Rocket className="h-3.5 w-3.5" />
-            Despliegues
-          </div>
-          <p className="text-xs leading-relaxed text-gray-500">
-            El menú permanece visible al desplazarte. Usa{' '}
-            <strong className="text-gray-300">Todos los datos</strong> para el registro completo.
-          </p>
-        </div>
       </div>
     </>
   )
