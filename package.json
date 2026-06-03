@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "db:setup": "node scripts/setup-database.mjs",
     "clean": "node -e \"const fs=require('fs');['.next','node_modules'].forEach(p=>{try{fs.rmSync(p,{recursive:true,force:true})}catch(e){}})\""
   },
   "dependencies": {

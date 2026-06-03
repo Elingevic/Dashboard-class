@@ -21,8 +21,34 @@ Este proyecto usa **pnpm** (no npm). Con [Corepack](https://nodejs.org/api/corep
 ```bash
 corepack enable
 pnpm install
+```
+
+### 1. Base de datos local (PostgreSQL)
+
+No hace falta un servidor remoto. En tu PC:
+
+1. Instala [PostgreSQL](https://www.postgresql.org/download/) y crea la base `postgres` (o la que uses).
+2. Copia el ejemplo de entorno:
+   ```bash
+   copy .env.example .env.local
+   ```
+3. Crea tablas + datos de prueba (15 despliegues, trimestre T2 2026):
+   ```bash
+   pnpm db:setup
+   ```
+   Equivalente manual: `psql -U postgres -d postgres -f scripts/database-model.sql`
+
+- **Estructura de la BD (README):** [docs/README-BASE-DE-DATOS.md](docs/README-BASE-DE-DATOS.md)  
+- **Diagrama ER:** [docs/MODELO-DATOS.md](docs/MODELO-DATOS.md)  
+- **Script SQL:** `scripts/database-model.sql`
+
+### 2. Dashboard
+
+```bash
 pnpm dev
 ```
+
+Abrir [http://localhost:3000](http://localhost:3000).
 
 Comandos habituales: `pnpm build`, `pnpm start`, `pnpm lint`, `pnpm dev:webpack` (si Turbopack falla).
 
@@ -39,7 +65,7 @@ Comandos habituales: `pnpm build`, `pnpm start`, `pnpm lint`, `pnpm dev:webpack`
 
 **Causa habitual:** `node_modules` mezclado (npm + pnpm) o un `package-lock.json` en `C:\Users\TecnoUsuario1\` que confunde a Turbopack. Este proyecto fija la raíz en `next.config.ts`.
 
-Abrir [http://localhost:3000](http://localhost:3000). La API usa PostgreSQL en `127.0.0.1:5432`, base `postgres`, usuario `postgres` (trust local).
+La conexión se configura en `.env.local` (ver `.env.example`).
 
 ## Estructura
 
