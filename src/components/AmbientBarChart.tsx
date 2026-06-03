@@ -32,19 +32,23 @@ export default function AmbientBarChart({ data, onBarClick }: Props) {
   }
 
   return (
-    <div className="h-[260px] w-full min-w-0 sm:h-[280px]">
+    <div className="h-[220px] w-full min-w-0 sm:h-[280px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 12, right: 16, left: 4, bottom: 8 }}
+          margin={{ top: 12, right: 8, left: 0, bottom: 4 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-          <XAxis 
-            dataKey="ambiente" 
-            axisLine={false} 
-            tickLine={false} 
-            tick={{ fill: '#9ca3af', fontSize: 12, fontWeight: 500 }}
-            dy={10}
+          <XAxis
+            dataKey="ambiente"
+            axisLine={false}
+            tickLine={false}
+            interval={0}
+            tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 500 }}
+            angle={-35}
+            textAnchor="end"
+            height={56}
+            dy={4}
           />
           <YAxis 
             axisLine={false} 

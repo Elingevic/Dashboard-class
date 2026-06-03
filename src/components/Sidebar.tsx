@@ -10,6 +10,7 @@ import {
   Scale,
   Plus,
   Table2,
+  X,
 } from 'lucide-react'
 import type { VistaDashboard } from '@/lib/dashboard'
 
@@ -32,8 +33,10 @@ interface Props {
   vistaActiva: VistaDashboard
   onVistaChange: (vista: VistaDashboard) => void
   onNuevoDespliegue?: () => void
-  /** Ref del contenedor con scroll del panel principal */
   scrollContainerRef?: React.RefObject<HTMLElement | null>
+  /** Panel lateral móvil abierto */
+  mobileOpen?: boolean
+  onMobileClose?: () => void
 }
 
 export default function Sidebar({
@@ -41,14 +44,15 @@ export default function Sidebar({
   onVistaChange,
   onNuevoDespliegue,
   scrollContainerRef,
+  mobileOpen = false,
+  onMobileClose,
 }: Props) {
   const [sidebarScrolled, setSidebarScrolled] = useState(false)
   const [mainScrolled, setMainScrolled] = useState(false)
 
   useEffect(() => {
-    const panel = document.querySelector<HTMLElement>('.sidebar-panel')
+    const panel = document.querySelector<HTMLElement>('.sidebar-panel--desktop')
     if (!panel) return
-
     const onSidebarScroll = () => setSidebarScrolled(panel.scrollTop > 8)
     panel.addEventListener('scroll', onSidebarScroll, { passive: true })
     return () => panel.removeEventListener('scroll', onSidebarScroll)
@@ -57,38 +61,55 @@ export default function Sidebar({
   useEffect(() => {
     const main = scrollContainerRef?.current
     if (!main) return
-
     const onMainScroll = () => setMainScrolled(main.scrollTop > 8)
     onMainScroll()
     main.addEventListener('scroll', onMainScroll, { passive: true })
     return () => main.removeEventListener('scroll', onMainScroll)
   }, [scrollContainerRef])
 
+  useEffect(() => {
+    if (!mobileOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [mobileOpen])
+
   const handleNav = (vista: VistaDashboard) => {
     onVistaChange(vista)
     scrollContainerRef?.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    onMobileClose?.()
   }
 
-  return (
-    <aside
-      className={`sidebar-panel flex w-full shrink-0 flex-col ${sidebarScrolled || mainScrolled ? 'is-scrolled' : ''}`}
-    >
-      <div className="sticky top-0 z-10 border-b border-white/5 bg-[#0f1012]/95 px-4 py-4 backdrop-blur-md sm:px-5">
+  const panelContent = (
+    <>
+      <div className="sidebar-panel__head">
+        {onMobileClose && (
+          <button
+            type="button"
+            onClick={onMobileClose}
+            className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg text-gray-400 hover:bg-white/5 lg:hidden"
+            aria-label="Cerrar menú"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
         <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">
           Centro DevOps
         </p>
         <button
           type="button"
           onClick={onNuevoDespliegue}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-colors hover:bg-blue-500"
+          className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-colors hover:bg-blue-500 active:bg-blue-700"
         >
           <Plus className="h-4 w-4" />
           Nuevo despliegue
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 px-4 pb-5 sm:px-5">
-        <nav className="mt-2 flex flex-col gap-1" aria-label="Navegación principal">
+      <div className="sidebar-panel__body">
+        <nav className="flex flex-col gap-1" aria-label="Navegación principal">
           {NAV_ITEMS.map((item) => {
             const activo = vistaActiva === item.id
             return (
@@ -96,7 +117,7 @@ export default function Sidebar({
                 key={item.id}
                 type="button"
                 onClick={() => handleNav(item.id)}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                className={`flex min-h-[44px] w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
                   activo
                     ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                     : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
@@ -110,7 +131,7 @@ export default function Sidebar({
           })}
         </nav>
 
-        <div className="sidebar-hint mt-4 rounded-xl p-4 lg:block">
+        <div className="sidebar-hint mt-4 hidden rounded-xl p-4 lg:block">
           <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500">
             <Rocket className="h-3.5 w-3.5" />
             Despliegues
@@ -121,6 +142,32 @@ export default function Sidebar({
           </p>
         </div>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      {/* Escritorio: barra fija */}
+      <aside
+        className={`sidebar-panel sidebar-panel--desktop hidden lg:flex lg:flex-col ${sidebarScrolled || mainScrolled ? 'is-scrolled' : ''}`}
+      >
+        {panelContent}
+      </aside>
+
+      {/* Móvil: drawer */}
+      {mobileOpen && (
+        <div className="mobile-drawer-root lg:hidden" role="dialog" aria-modal="true" aria-label="Menú">
+          <button
+            type="button"
+            className="mobile-drawer-overlay"
+            onClick={onMobileClose}
+            aria-label="Cerrar menú"
+          />
+          <aside className="sidebar-panel sidebar-panel--drawer flex flex-col">
+            {panelContent}
+          </aside>
+        </div>
+      )}
+    </>
   )
 }

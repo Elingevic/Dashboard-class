@@ -8,6 +8,13 @@ const inter = Inter({
   display: 'swap',
 })
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#09090b',
+}
+
 export const metadata: Metadata = {
   title: 'Centro DevOps · Control de Despliegue',
   description:

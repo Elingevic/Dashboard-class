@@ -43,19 +43,22 @@ html {
   background-color: #09090b;
   color: var(--text-primary);
   height: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  height: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
   overflow: hidden;
   background: #09090b;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 /* ── Dashboard layout ─────────────────────────────────────────────────────── */
 .dashboard-shell {
-  min-height: 100vh;
-  height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -63,7 +66,7 @@ body {
   width: 100%;
   max-width: 80rem;
   margin-inline: auto;
-  padding-inline: clamp(1rem, 4vw, 2rem);
+  padding-inline: clamp(0.75rem, 3vw, 2rem);
 }
 
 .app-main .dashboard-container {
@@ -99,22 +102,47 @@ body {
 .chart-area {
   width: 100%;
   min-width: 0;
-  min-height: 260px;
+  min-height: 200px;
   height: 100%;
   flex: 1 1 auto;
 }
 
-/* ── Sidebar (modo oscuro, fijo al scroll) ─────────────────────────────────── */
+@media (min-width: 640px) {
+  .chart-area {
+    min-height: 240px;
+  }
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .sidebar-panel {
   background: linear-gradient(180deg, #0f1012 0%, #0c0d0f 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
-  height: 100%;
-  overflow-y: auto;
   overflow-x: hidden;
+}
+
+.sidebar-panel--desktop {
+  width: 16rem;
+  height: 100dvh;
+  overflow-y: auto;
 }
 
 .sidebar-panel.is-scrolled {
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+.sidebar-panel__head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 16, 18, 0.95);
+  padding: 1rem 1rem 1rem;
+  backdrop-filter: blur(12px);
+}
+
+.sidebar-panel__body {
+  flex: 1;
+  padding: 0.5rem 1rem 1.25rem;
 }
 
 .sidebar-hint {
@@ -122,9 +150,87 @@ body {
   background: rgba(255, 255, 255, 0.03);
 }
 
+/* Drawer móvil */
+.mobile-drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+}
+
+.mobile-drawer-overlay {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.sidebar-panel--drawer {
+  position: relative;
+  z-index: 1;
+  width: min(18rem, 88vw);
+  max-width: 100%;
+  height: 100dvh;
+  overflow-y: auto;
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+  animation: slideInDrawer 0.22s ease-out;
+}
+
+@keyframes slideInDrawer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Barra inferior móvil */
+.mobile-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 9, 11, 0.96);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  backdrop-filter: blur(16px);
+}
+
+.mobile-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  min-height: 3.5rem;
+  padding: 0.35rem 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #9ca3af;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-btn--active {
+  color: #60a5fa;
+}
+
+.mobile-nav-btn:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .app-layout {
   display: flex;
-  height: 100vh;
+  height: 100dvh;
   min-width: 0;
   width: 100%;
   overflow: hidden;
@@ -132,18 +238,16 @@ body {
 
 .app-sidebar {
   flex-shrink: 0;
-  width: 16rem;
-  height: 100vh;
-  position: sticky;
-  top: 0;
-  z-index: 60;
-  align-self: flex-start;
+  width: 0;
+  height: 0;
+  overflow: visible;
 }
 
 .app-main {
   flex: 1;
   min-width: 0;
-  height: 100vh;
+  width: 100%;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -155,78 +259,102 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+.app-header {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 @media (min-width: 1024px) {
   .app-sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
+    width: 16rem;
+    height: 100dvh;
   }
 
   .app-main {
     margin-left: 16rem;
     width: calc(100% - 16rem);
   }
-}
-
-@media (max-width: 1023px) {
-  .dashboard-shell {
-    height: auto;
-    min-height: 100vh;
-    overflow: visible;
-  }
-
-  .app-layout {
-    flex-direction: column;
-    height: auto;
-    overflow: visible;
-  }
-
-  .app-sidebar {
-    position: sticky;
-    top: 0;
-    z-index: 60;
-    width: 100%;
-    max-width: none;
-    height: auto;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .sidebar-panel {
-    max-height: none;
-  }
-
-  .app-main {
-    margin-left: 0;
-    width: 100%;
-    height: auto;
-    overflow: visible;
-  }
 
   .app-main-scroll {
-    overflow: visible;
+    padding-bottom: 0;
+  }
+}
+
+/* Tarjetas de despliegue (móvil) */
+.despliegue-card {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.875rem 1rem;
+}
+
+.despliegue-card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.despliegue-card__label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+/* Filtros colapsables en móvil */
+.filters-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .filters-toggle {
+    display: none;
   }
 
-  .sidebar-panel nav {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .filters-panel--mobile {
+    display: block !important;
   }
+}
 
-  .sidebar-panel nav button {
-    flex: 1 1 auto;
-    min-width: 8rem;
-    justify-content: center;
-  }
+.filters-panel--mobile {
+  display: none;
+  margin-top: 0.75rem;
+}
+
+.filters-panel--mobile.is-open {
+  display: block;
 }
 
 .filter-input {
   width: 100%;
+  min-height: 2.75rem;
   border-radius: 0.625rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: var(--text-primary);
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;

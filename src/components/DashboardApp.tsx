@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Sidebar from '@/components/Sidebar';
+import MobileNav from '@/components/MobileNav';
 import DashboardFilters from '@/components/DashboardFilters';
 import DesplieguesTable from '@/components/DesplieguesTable';
 import GobernanzaPanel from '@/components/GobernanzaPanel';
@@ -96,7 +97,7 @@ function KpiCard({ config, variants }: { config: KpiConfig; variants: typeof fad
         </div>
         <div>
           <p className="mb-0.5 text-sm font-medium text-gray-400">{config.label}</p>
-          <p className="text-3xl font-bold tracking-tight text-white">{config.value}</p>
+          <p className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{config.value}</p>
           <p className="mt-1 text-xs text-gray-500">{config.sub}</p>
         </div>
       </div>
@@ -216,7 +217,14 @@ export default function DashboardApp() {
   const [vista, setVista] = useState<VistaDashboard>('analiticas');
   const [filtros, setFiltros] = useState<FiltrosDashboard>(FILTROS_VACIOS);
   const [busquedaDebounced, setBusquedaDebounced] = useState('');
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
   const mainScrollRef = useRef<HTMLDivElement>(null);
+
+  const cambiarVista = (v: VistaDashboard) => {
+    setVista(v);
+    setMenuMovilAbierto(false);
+    mainScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setBusquedaDebounced(filtros.busqueda), 350);
@@ -299,7 +307,7 @@ export default function DashboardApp() {
   const chartsSection = data && (
     <>
       <section className="dashboard-grid grid-cols-1 lg:grid-cols-12 lg:items-stretch">
-        <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[360px] flex-col lg:col-span-4">
+        <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[280px] flex-col sm:min-h-[320px] lg:col-span-4 lg:min-h-[360px]">
           <CardHeader title="Distribución por estado" description="Clic en un segmento para filtrar" />
           <div className="chart-area relative flex items-center justify-center">
             {loading ? (
@@ -313,7 +321,7 @@ export default function DashboardApp() {
             )}
           </div>
         </motion.div>
-        <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[360px] flex-col lg:col-span-8">
+        <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[280px] flex-col sm:min-h-[320px] lg:col-span-8 lg:min-h-[360px]">
           <CardHeader title="Volumen por ambiente" description="Clic en una barra para filtrar" />
           <div className="chart-area relative">
             <AmbientBarChart
@@ -325,14 +333,14 @@ export default function DashboardApp() {
       </section>
 
       <section className="dashboard-grid grid-cols-1 lg:grid-cols-2">
-        <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[320px] flex-col">
+        <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[260px] flex-col sm:min-h-[300px]">
           <CardHeader title="Volumen por proyecto" description="Clic en una barra para filtrar" />
           <ProyectoBarChart
             data={data.volumenPorProyecto}
             onBarClick={(proyecto) => aplicarFiltro({ proyecto })}
           />
         </motion.div>
-        <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[320px] flex-col">
+        <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[260px] flex-col sm:min-h-[300px]">
           <CardHeader title="Tendencia del trimestre" description="Despliegues por semana" />
           <TendenciaChart data={data.tendenciaTemporal} />
         </motion.div>
@@ -348,7 +356,7 @@ export default function DashboardApp() {
         </div>
         <FailuresTable data={data.topRollbacks} />
       </motion.div>
-      <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[320px] flex-col lg:col-span-5">
+      <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[260px] flex-col sm:min-h-[300px] lg:col-span-5">
         <CardHeader title="Cobertura de evidencias" description="Trazabilidad documental" />
         <div className="flex flex-1 flex-col items-center justify-center py-2">
           <EvidenciaGauge
@@ -407,7 +415,7 @@ export default function DashboardApp() {
       case 'infraestructura':
         return data ? (
           <>
-            <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[360px] flex-col">
+            <motion.div variants={fadeInUp} className="dashboard-card dashboard-card-body flex min-h-[280px] flex-col sm:min-h-[320px]">
               <CardHeader title="Volumen por ambiente" description="Infraestructura destino de los despliegues" />
               <AmbientBarChart
                 data={data.volumenPorAmbiente}
@@ -435,20 +443,32 @@ export default function DashboardApp() {
         <div className="app-sidebar">
           <Sidebar
             vistaActiva={vista}
-            onVistaChange={setVista}
+            onVistaChange={cambiarVista}
             scrollContainerRef={mainScrollRef}
+            mobileOpen={menuMovilAbierto}
+            onMobileClose={() => setMenuMovilAbierto(false)}
           />
         </div>
 
         <div className="app-main">
-          <header className="z-30 shrink-0 border-b border-white/5 bg-[#09090b]/95 backdrop-blur-xl">
-            <div className="dashboard-container flex h-16 items-center justify-between">
-              <div className="flex min-w-0 items-center gap-3">
+          <header className="app-header z-30 shrink-0 border-b border-white/5 bg-[#09090b]/95 backdrop-blur-xl">
+            <div className="dashboard-container flex min-h-14 items-center justify-between gap-2 py-2 sm:h-16 sm:py-0">
+              <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMenuMovilAbierto(true)}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 text-gray-300 lg:hidden"
+                  aria-label="Abrir menú"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
+                    <path strokeLinecap="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]">
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="truncate text-sm font-bold uppercase tracking-widest text-gray-200">
+                  <h1 className="truncate text-xs font-bold uppercase tracking-widest text-gray-200 sm:text-sm">
                     Centro <span className="text-blue-500">DevOps</span>
                   </h1>
                   {data?.trimestreActivo && (
@@ -456,15 +476,15 @@ export default function DashboardApp() {
                   )}
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-3 text-sm font-medium text-gray-400">
-                <span className="hidden items-center gap-2 sm:flex">
+              <div className="flex shrink-0 items-center gap-1 text-sm font-medium text-gray-400 sm:gap-3">
+                <span className="hidden items-center gap-2 md:flex">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                   Sistema en vivo
                 </span>
                 <button
                   type="button"
                   onClick={fetchData}
-                  className="rounded-full p-2 transition-colors hover:bg-white/5"
+                  className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white/5 active:bg-white/10"
                   aria-label="Actualizar datos"
                 >
                   <RefreshCcw className="h-4 w-4 text-gray-400" />
@@ -480,7 +500,7 @@ export default function DashboardApp() {
                 animate={{ opacity: 1, x: 0 }}
                 className="mb-6 sm:mb-8"
               >
-                <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{meta.titulo}</h2>
+                <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl lg:text-3xl">{meta.titulo}</h2>
                 <p className="mt-1 max-w-3xl text-sm text-gray-400">{meta.descripcion}</p>
               </motion.div>
 
@@ -515,6 +535,12 @@ export default function DashboardApp() {
               </motion.div>
             </main>
           </div>
+
+          <MobileNav
+            vistaActiva={vista}
+            onVistaChange={cambiarVista}
+            onAbrirMenu={() => setMenuMovilAbierto(true)}
+          />
         </div>
       </div>
     </div>
