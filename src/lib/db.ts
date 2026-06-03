@@ -1,17 +1,7 @@
 import { Pool } from 'pg'
+import { getPgPoolConfig } from '@/lib/pg-config'
 
-function pgConfig() {
-  const password = process.env.PGPASSWORD ?? process.env.PG_PASSWORD
-  return {
-    host: (process.env.PGHOST ?? process.env.PG_HOST ?? '127.0.0.1').replace(/^localhost$/i, '127.0.0.1'),
-    port: Number(process.env.PGPORT ?? process.env.PG_PORT ?? 5432),
-    database: process.env.PGDATABASE ?? process.env.PG_DATABASE ?? 'postgres',
-    user: process.env.PGUSER ?? process.env.PG_USER ?? 'postgres',
-    ...(password !== undefined && password !== '' ? { password } : {}),
-  }
-}
-
-export const pool = new Pool(pgConfig())
+export const pool = new Pool(getPgPoolConfig())
 
 export const JOIN_BASE = `
   FROM despliegue d

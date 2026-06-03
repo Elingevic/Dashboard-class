@@ -67,6 +67,16 @@ Comandos habituales: `pnpm build`, `pnpm start`, `pnpm lint`, `pnpm dev:webpack`
 
 La conexión se configura en `.env.local` (ver `.env.example`).
 
+### 3. Producción: Supabase + Vercel
+
+Para desplegar con datos reales en la nube:
+
+1. Ejecuta `scripts/database-model.sql` en el **SQL Editor** de Supabase (o `pnpm db:setup` con `DATABASE_URL` Direct).
+2. En Vercel, variable **`DATABASE_URL`** = URI del **Transaction pooler** de Supabase (no Direct).
+3. Redeploy.
+
+Guía paso a paso: **[docs/SUPABASE-VERCEL.md](docs/SUPABASE-VERCEL.md)**
+
 ## Estructura
 
 ```

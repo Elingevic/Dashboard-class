@@ -26,9 +26,10 @@ function pct(num: number, den: number): number {
 export async function GET(request: NextRequest) {
   const filtros = parseFiltros(request.nextUrl.searchParams)
   const trimestreActivo = resolverTrimestre(request.nextUrl.searchParams.get('trimestre'))
-  const client = await pool.connect()
+  let client: Awaited<ReturnType<typeof pool.connect>> | undefined
 
   try {
+    client = await pool.connect()
     const { clause: whereClause, params: whereParams } = buildWhere(filtros, 1)
 
     const kpisResult = await client.query<{
@@ -297,6 +298,6 @@ export async function GET(request: NextRequest) {
     const message = err instanceof Error ? err.message : 'Error desconocido'
     return NextResponse.json({ error: message }, { status: 500 })
   } finally {
-    client.release()
+    client?.release()
   }
 }

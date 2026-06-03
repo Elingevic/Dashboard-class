@@ -29,15 +29,37 @@ function loadEnvLocal() {
 
 const env = loadEnvLocal()
 
-/** En Windows, "localhost" suele usar IPv6 (::1) con SCRAM; 127.0.0.1 usa trust en pg_hba local. */
-const password = env.PGPASSWORD ?? env.PG_PASSWORD
-const config = {
-  host: (env.PGHOST || env.PG_HOST || env.DB_HOST || '127.0.0.1').replace(/^localhost$/i, '127.0.0.1'),
-  port: Number(env.PGPORT || env.PG_PORT || env.DB_PORT || 5432),
-  database: env.PGDATABASE || env.PG_DATABASE || env.DB_NAME || 'postgres',
-  user: env.PGUSER || env.PG_USER || env.DB_USER || 'postgres',
-  ...(password !== undefined && password !== '' ? { password } : {}),
+function isSupabaseHost(value) {
+  return /supabase\.(co|com)/i.test(value)
 }
+
+function buildPgConfig(fromEnv) {
+  const databaseUrl = fromEnv.DATABASE_URL?.trim()
+  if (databaseUrl) {
+    const ssl = isSupabaseHost(databaseUrl) || fromEnv.PG_SSL === 'true'
+    return {
+      connectionString: databaseUrl,
+      ...(ssl ? { ssl: { rejectUnauthorized: false } } : {}),
+    }
+  }
+
+  const password = fromEnv.PGPASSWORD ?? fromEnv.PG_PASSWORD
+  const host = (fromEnv.PGHOST || fromEnv.PG_HOST || fromEnv.DB_HOST || '127.0.0.1').replace(
+    /^localhost$/i,
+    '127.0.0.1'
+  )
+  const ssl = isSupabaseHost(host) || fromEnv.PG_SSL === 'true'
+  return {
+    host,
+    port: Number(fromEnv.PGPORT || fromEnv.PG_PORT || fromEnv.DB_PORT || 5432),
+    database: fromEnv.PGDATABASE || fromEnv.PG_DATABASE || fromEnv.DB_NAME || 'postgres',
+    user: fromEnv.PGUSER || fromEnv.PG_USER || fromEnv.DB_USER || 'postgres',
+    ...(password !== undefined && password !== '' ? { password } : {}),
+    ...(ssl ? { ssl: { rejectUnauthorized: false } } : {}),
+  }
+}
+
+const config = buildPgConfig(env)
 
 const sqlPath = path.join(__dirname, 'database-model.sql')
 const sql = fs.readFileSync(sqlPath, 'utf8')

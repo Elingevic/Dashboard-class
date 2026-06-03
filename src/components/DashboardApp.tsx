@@ -224,9 +224,21 @@ export default function DashboardApp() {
     setError(null);
     try {
       const res = await fetch(buildDashboardUrl(filtrosActivos), { cache: 'no-store' });
-      const json = await res.json();
-      if (!res.ok || json.error) {
-        setError(json.error ?? 'Error al cargar el dashboard');
+      const raw = await res.text();
+      let json: { error?: string } | DashboardData = {};
+      try {
+        json = raw ? (JSON.parse(raw) as typeof json) : {};
+      } catch {
+        setError(
+          res.ok
+            ? 'La API devolvió una respuesta inválida'
+            : `Error del servidor (${res.status}). Revisa DATABASE_URL en Vercel y que el SQL esté aplicado en Supabase.`
+        );
+        setData(null);
+        return;
+      }
+      if (!res.ok || ('error' in json && json.error)) {
+        setError(('error' in json && json.error) || 'Error al cargar el dashboard');
         setData(null);
       } else {
         setData(json as DashboardData);
