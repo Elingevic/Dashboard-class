@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:setup": "node scripts/setup-database.mjs",
+    "vercel:env": "node scripts/push-vercel-env.mjs",
     "clean": "node -e \"const fs=require('fs');['.next','node_modules'].forEach(p=>{try{fs.rmSync(p,{recursive:true,force:true})}catch(e){}})\""
   },
   "dependencies": {
