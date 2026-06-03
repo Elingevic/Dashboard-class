@@ -4,6 +4,22 @@
 
 Sábana desnormalizada: `data/BI_DESPLIEGUES_Q1_2024.csv` (84 despliegues, trimestre **Q1 2024**).
 
+### Dos CSV distintos (no confundirlos)
+
+| Archivo | Columnas | Uso |
+|---------|----------|-----|
+| `BI_DESPLIEGUES_Q1_2024.csv` | ~50 (proyecto, repositorio, métricas, flags…) | **Cargar el data warehouse** (`pnpm db:import`) y entrega académica |
+| `despliegues-trimestre.csv` | 11 (id, proyecto, ambiente, usuario…) | **Exportación del dashboard** (botón “Exportar CSV”) para revisar en Excel |
+
+Si en Excel ves `GestiÃ³n` o `VÃ­ctor`, es codificación: el CSV está en UTF-8 pero Excel lo abrió como Latin-1.
+
+**Cómo abrirlo bien en Excel**
+
+1. Vuelve a exportar desde el dashboard (ya incluye BOM UTF-8), o  
+2. Excel → **Datos** → **Desde texto/CSV** → elige el archivo → codificación **65001: Unicode (UTF-8)**.
+
+**No uses** el CSV del dashboard para `pnpm db:import`; usa la sábana BI completa.
+
 ## Tablas
 
 | Tipo | Tabla | Descripción |

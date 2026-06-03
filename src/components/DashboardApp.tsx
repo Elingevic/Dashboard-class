@@ -172,6 +172,10 @@ function buildKpiCards(kpis: KpisAgregados): KpiConfig[] {
   ];
 }
 
+function escaparCeldaCsv(valor: string): string {
+  return `"${valor.replace(/"/g, '""')}"`;
+}
+
 function exportarCsv(despliegues: DashboardData['despliegues']) {
   const headers = [
     'id', 'proyecto', 'ambiente', 'usuario', 'estado', 'commit', 'fecha',
@@ -190,7 +194,12 @@ function exportarCsv(despliegues: DashboardData['despliegues']) {
     d.migracionConcluida ? 'si' : 'no',
     String(d.rollbacks),
   ]);
-  const csv = [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n');
+  const lineas = [
+    headers.join(','),
+    ...rows.map((r) => r.map((c) => escaparCeldaCsv(c)).join(',')),
+  ].join('\r\n');
+  // BOM UTF-8: Excel en Windows reconoce tildes (Gestión, Víctor, Trámites)
+  const csv = `\uFEFF${lineas}`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
