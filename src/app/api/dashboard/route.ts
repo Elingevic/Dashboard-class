@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { PoolClient } from 'pg'
 import {
   SQL_ESTADO_EXITO,
   SQL_ESTADO_FALLO,
@@ -26,7 +27,7 @@ function pct(num: number, den: number): number {
 export async function GET(request: NextRequest) {
   const filtros = parseFiltros(request.nextUrl.searchParams)
   const trimestreActivo = resolverTrimestre(request.nextUrl.searchParams.get('trimestre'))
-  let client: Awaited<ReturnType<typeof pool.connect>> | undefined
+  let client: PoolClient | undefined
 
   try {
     client = await pool.connect()

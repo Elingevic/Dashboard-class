@@ -65,13 +65,19 @@ if (/localhost|127\.0\.0\.1/i.test(url)) {
 console.log('→ Enlazando proyecto (si hace falta)...')
 runVercel(['link', '--project', 'dashboard-class', '--yes'])
 
-for (const target of ['production', 'preview']) {
+const envTargets = [
+  ['production'],
+  ['preview'], // sin rama = todas las ramas preview
+]
+
+for (const targetParts of envTargets) {
+  const target = targetParts[0]
   console.log(`→ Añadiendo DATABASE_URL en ${target}...`)
   const r = runVercel([
     'env',
     'add',
     'DATABASE_URL',
-    target,
+    ...targetParts,
     '--value',
     url,
     '--yes',
