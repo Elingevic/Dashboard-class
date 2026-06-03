@@ -104,7 +104,7 @@ export default function DashboardFilters({
             enterKeyHint="search"
             value={filtros.busqueda}
             onChange={(e) => set('busqueda', e.target.value)}
-            placeholder="Proyecto, usuario, estado…"
+              placeholder="Buscar por proyecto, usuario o estado"
             className="filter-input-search__field"
             aria-label="Buscar por proyecto, usuario o estado"
           />

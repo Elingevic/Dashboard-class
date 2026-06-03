@@ -1,5 +1,6 @@
 import { Pool } from 'pg'
 import { getPgPoolConfig } from '@/lib/pg-config'
+import { normalizeForSearch, sqlNormalizeField } from '@/lib/search-normalize'
 
 export const pool = new Pool(getPgPoolConfig())
 
@@ -24,6 +25,10 @@ export type FiltrosQuery = {
   busqueda: string | null
 }
 
+function sqlNormalizeEstado(): string {
+  return `REPLACE(${sqlNormalizeField('f.estado_despliegue')}, ' ', '_')`
+}
+
 export function buildWhere(
   filtros: FiltrosQuery,
   startIdx: number
@@ -36,24 +41,24 @@ export function buildWhere(
   let i = startIdx + 2
 
   if (filtros.estado) {
-    conditions.push(
-      `LOWER(REPLACE(f.estado_despliegue, ' ', '_')) = LOWER(REPLACE($${i++}::text, ' ', '_'))`
-    )
-    params.push(filtros.estado)
+    const estadoNorm = normalizeForSearch(filtros.estado).replace(/\s+/g, '_')
+    conditions.push(`${sqlNormalizeEstado()} = $${i++}`)
+    params.push(estadoNorm)
   }
   if (filtros.ambiente) {
-    conditions.push(`LOWER(a.ambiente) = LOWER($${i++})`)
-    params.push(filtros.ambiente)
+    conditions.push(`${sqlNormalizeField('a.ambiente')} = $${i++}`)
+    params.push(normalizeForSearch(filtros.ambiente))
   }
   if (filtros.proyecto) {
-    conditions.push(`LOWER(p.proyecto) = LOWER($${i++})`)
-    params.push(filtros.proyecto)
+    conditions.push(`${sqlNormalizeField('p.proyecto')} = $${i++}`)
+    params.push(normalizeForSearch(filtros.proyecto))
   }
   if (filtros.busqueda) {
+    const term = `%${normalizeForSearch(filtros.busqueda)}%`
     conditions.push(
-      `(LOWER(p.proyecto) LIKE LOWER($${i}) OR LOWER(REPLACE(f.estado_despliegue, ' ', '_')) LIKE LOWER(REPLACE($${i}::text, ' ', '_')) OR LOWER(a.ambiente) LIKE LOWER($${i}) OR LOWER(COALESCE(u.responsable, '')) LIKE LOWER($${i}))`
+      `(${sqlNormalizeField('p.proyecto')} LIKE $${i} OR ${sqlNormalizeEstado()} LIKE $${i} OR ${sqlNormalizeField('a.ambiente')} LIKE $${i} OR ${sqlNormalizeField('u.responsable')} LIKE $${i})`
     )
-    params.push(`%${filtros.busqueda}%`)
+    params.push(term)
     i++
   }
 

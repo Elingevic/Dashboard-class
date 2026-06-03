@@ -468,8 +468,9 @@ export default function DashboardApp() {
                   <Activity className="h-5 w-5 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <h1 className="truncate text-xs font-bold uppercase tracking-widest text-gray-200 sm:text-sm">
-                    Centro <span className="text-blue-500">DevOps</span>
+                  <h1 className="truncate text-[11px] font-bold leading-tight text-gray-200 sm:text-xs">
+                    Centro{' '}
+                    <span className="text-blue-500">Gestión de Despliegue</span>
                   </h1>
                   {data?.trimestreActivo && (
                     <p className="truncate text-[10px] text-gray-500">{data.trimestreActivo.etiqueta}</p>
