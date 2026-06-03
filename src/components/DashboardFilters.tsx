@@ -123,14 +123,17 @@ export default function DashboardFilters({
 
         <label className="flex flex-col gap-1.5">
           <span className="text-xs font-medium text-gray-500">Búsqueda</span>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+          <div className="filter-input-search">
+            <Search className="filter-input-search__icon" aria-hidden />
             <input
-              type="search"
+              type="text"
+              inputMode="search"
+              enterKeyHint="search"
               value={filtros.busqueda}
               onChange={(e) => set('busqueda', e.target.value)}
               placeholder="Proyecto, usuario, estado…"
-              className="filter-input pl-9"
+              className="filter-input-search__field"
+              aria-label="Buscar por proyecto, usuario o estado"
             />
           </div>
         </label>
