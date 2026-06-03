@@ -96,7 +96,7 @@ export default function Sidebar({
           </button>
         )}
         <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-          Centro DevOps
+          Centro Gestión de despliegue
         </p>
         <button
           type="button"

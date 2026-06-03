@@ -16,7 +16,7 @@ export const viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Centro DevOps · Control de Despliegue',
+  title: 'Centro Gestión de despliegue · Control de Despliegue',
   description:
     'Dashboard analítico por trimestre: tasas de éxito, falla, rollback, evidencia, gobernanza y trazabilidad de commits.',
   keywords: [

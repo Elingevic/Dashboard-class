@@ -7,11 +7,11 @@
 3. La API consulta PostgreSQL (esquema en estrella: `fact_despliegue` + dimensiones).
 4. Responde JSON con KPIs, gráficos, tabla y opciones de filtros.
 5. React pinta la vista según la pestaña activa (Resumen, Analíticas, etc.).
-
+    
 ## Capas
 
 | Capa | Archivos |
-|------|----------|
+|------|----------| 
 | UI | `DashboardApp.tsx`, componentes en `src/components/` |
 | API | `src/app/api/dashboard/route.ts` |
 | SQL | `src/lib/db.ts`, `estados.ts`, `trimestre.ts` |
