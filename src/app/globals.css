@@ -1,0 +1,361 @@
+@import "tailwindcss";
+
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
+:root {
+  --bg-base:        #0d1117;
+  --bg-surface:     #161b22;
+  --bg-elevated:    #1c2128;
+  --border:         #30363d;
+  --text-primary:   #e6edf3;
+  --text-secondary: #8b949e;
+  --accent-blue:    #58a6ff;
+  --accent-green:   #3fb950;
+  --accent-orange:  #d29922;
+  --accent-red:     #f85149;
+  --accent-purple:  #bc8cff;
+  --accent-cyan:    #39d353;
+}
+
+@theme inline {
+  --color-bg-base:        var(--bg-base);
+  --color-bg-surface:     var(--bg-surface);
+  --color-bg-elevated:    var(--bg-elevated);
+  --color-border:         var(--border);
+  --color-text-primary:   var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent-blue:    var(--accent-blue);
+  --color-accent-green:   var(--accent-green);
+  --color-accent-orange:  var(--accent-orange);
+  --color-accent-red:     var(--accent-red);
+  --color-accent-purple:  var(--accent-purple);
+  --color-accent-cyan:    var(--accent-cyan);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #09090b;
+  color: var(--text-primary);
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #09090b;
+}
+
+/* ── Dashboard layout ─────────────────────────────────────────────────────── */
+.dashboard-shell {
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.app-main .dashboard-container {
+  max-width: none;
+  margin-inline: 0;
+}
+
+.dashboard-section {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+  min-width: 0;
+}
+
+.dashboard-card {
+  background: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-card-body {
+  padding: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+.chart-area {
+  width: 100%;
+  min-width: 0;
+  min-height: 260px;
+  height: 100%;
+  flex: 1 1 auto;
+}
+
+/* ── Sidebar (modo oscuro, fijo al scroll) ─────────────────────────────────── */
+.sidebar-panel {
+  background: linear-gradient(180deg, #0f1012 0%, #0c0d0f 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-panel.is-scrolled {
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+.sidebar-hint {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.app-sidebar {
+  flex-shrink: 0;
+  width: 16rem;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  align-self: flex-start;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-main-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+@media (min-width: 1024px) {
+  .app-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+  }
+
+  .app-main {
+    margin-left: 16rem;
+    width: calc(100% - 16rem);
+  }
+}
+
+@media (max-width: 1023px) {
+  .dashboard-shell {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .app-layout {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .sidebar-panel {
+    max-height: none;
+  }
+
+  .app-main {
+    margin-left: 0;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .app-main-scroll {
+    overflow: visible;
+  }
+
+  .sidebar-panel nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .sidebar-panel nav button {
+    flex: 1 1 auto;
+    min-width: 8rem;
+    justify-content: center;
+  }
+}
+
+.filter-input {
+  width: 100%;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.filter-input:focus {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.filter-input option {
+  background: #161b22;
+  color: #e6edf3;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ── Glass card ───────────────────────────────────────────────────────────── */
+.glass-card {
+  background: rgba(22, 27, 34, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+  border-color: rgba(88, 166, 255, 0.35);
+  box-shadow: 0 0 24px rgba(88, 166, 255, 0.08);
+}
+
+/* ── Stat card ────────────────────────────────────────────────────────────── */
+.stat-card {
+  background: rgba(22, 27, 34, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Progress bar ─────────────────────────────────────────────────────────── */
+.progress-bar-track {
+  height: 8px;
+  background: var(--bg-elevated);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #58a6ff, #39d353);
+  transition: width 1s ease-out;
+}
+
+/* ── Table ────────────────────────────────────────────────────────────────── */
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.dashboard-table thead th {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.dashboard-table tbody tr {
+  border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+  transition: background 0.15s ease;
+}
+.dashboard-table tbody tr:hover {
+  background: rgba(88, 166, 255, 0.04);
+}
+.dashboard-table tbody td {
+  padding: 0.875rem 1rem;
+  color: var(--text-primary);
+}
+.dashboard-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+/* ── Badge ────────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.badge-red     { background: rgba(248,81,73,0.15);  color: #f85149; }
+.badge-green   { background: rgba(63,185,80,0.15);  color: #3fb950; }
+.badge-orange  { background: rgba(210,153,34,0.15); color: #d29922; }
+.badge-blue    { background: rgba(88,166,255,0.15); color: #58a6ff; }
+.badge-purple  { background: rgba(188,140,255,0.15);color: #bc8cff; }
+
+/* ── Skeleton loader ──────────────────────────────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+.skeleton {
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Fade in animation ────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+.fade-in-up-delay-1 { animation-delay: 0.1s; opacity: 0; }
+.fade-in-up-delay-2 { animation-delay: 0.2s; opacity: 0; }
+.fade-in-up-delay-3 { animation-delay: 0.3s; opacity: 0; }
+.fade-in-up-delay-4 { animation-delay: 0.4s; opacity: 0; }
